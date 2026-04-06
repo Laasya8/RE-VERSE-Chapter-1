@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="logo.png">
+    <title>The Sword of Eldoria</title>
+    <!-- Google Fonts for Fantasy aesthetic -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&family=Quicksand:wght@300;400&display=swap"
+        rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="fantasy-theme">
+    <div class="background-wrap">
+        <div class="bg-image"></div>
+        <div class="fog-overlay"></div>
+        <div class="vignette"></div>
+        <div class="embers"></div>
+    </div>
+
+    <!-- Rune Corners -->
+    <div class="rune corner-tl">ᚦ</div>
+    <div class="rune corner-tr">ᚩ</div>
+    <div class="rune corner-bl">ᚱ</div>
+    <div class="rune corner-br">ᚷ</div>
+
+    <div class="container animate-in">
+
+        <header>
+            <h1 class="title">The Path Revealed</h1>
+            <p class="subtitle">Find where he failed.</p>
+        </header>
+
+        <main>
+            <!-- 3D Story Section (Intro Phase 1) -->
+            <div class="story-section overlay-story phase-1">
+                <p class="story-text">The sword was there.</p>
+                <p class="story-text">The choice was his.</p>
+                <p class="story-text">He walked away.</p>
+                <p class="story-text finale">And everything fell.</p>
+            </div>
+
+            <!-- 3D Story Section (Intro Phase 2) -->
+            <div class="story-section overlay-story phase-2">
+                <p class="story-text choice-text">This time, the choice is yours.</p>
+            </div>
+
+
+            <!-- Original Coordinate Input Form (Hidden during intro) -->
+            <form id="mapForm" class="magic-panel">
+                <div class="input-group">
+                    <label for="lat">Latitude</label>
+                    <input type="text" id="lat" placeholder="Enter here.." required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="lng">Longitude</label>
+                    <input type="text" id="lng" placeholder="Enter here.." required autocomplete="off">
+                </div>
+                <button type="submit" class="rune-btn" id="submitBtn">
+                    <span>SEEK LOCATION</span>
+                </button>
+            </form>
+
+            <div class="map-section">
+                <!-- Map with Magical Frame -->
+                <div class="map-frame">
+                    <div id="map"></div>
+                    <div class="glowing-border"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+
+    <!-- High-Fidelity Manuscript Ritual Overlay -->
+    <div id="spell-note-overlay" class="spell-note-overlay d-none">
+        <div id="manuscriptNote" class="manuscript-note">
+            <div class="manuscript-inner">
+                <div id="manuscriptSwordStage" class="manuscript-sword-stage">
+                    <!-- Sword and Shield PNGs will be injected here -->
+                </div>
+
+                <!-- Dynamic Name Reveal (Below sword, Above content) -->
+                <div id="ritual-name-reveal" class="ritual-name-reveal">
+                    <h2 class="nixblade-title">ELDRYTH</h2>
+                    <p class="congratulatory-msg">The seal is broken. The blade is yours</p>
+                    <p id="ritual-endpoint-instruction" class="endpoint-instruction">
+                        Enter this name as an endpoint to continue to the next chapter.
+                    </p>
+                </div>
+
+                <div id="manuscriptContent" class="manuscript-content">
+                    <!-- Instruction, Input and Invoke Button -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Background & Map JS -->
+    <script src="background.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
