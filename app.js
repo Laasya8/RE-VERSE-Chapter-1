@@ -19,10 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "So close... but its empty here! Try again"
     ];
 
-    // The correct spell fragments (in the right order)
-    const CORRECT_SPELL = "The Man Who Walked With Shadows COMEBACK For A Reason Believing Fighting is Only Way To Save the World";
-    // The sword's true name
-    const SWORD_TRUE_NAME = "Eldryth";
+
 
     function getRandomPhrase() {
         let newIndex;
@@ -37,8 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const latInput = document.getElementById('lat');
     const lngInput = document.getElementById('lng');
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
 
         const latStr = latInput.value.trim();
         const lngStr = lngInput.value.trim();
@@ -47,10 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isNaN(lat) || isNaN(lng)) {
             alert('Please enter valid numeric coordinates.');
+            if (submitBtn) submitBtn.disabled = false;
             return;
         }
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
             alert('Coordinates out of range. Latitude must be -90 to 90, Longitude -180 to 180.');
+            if (submitBtn) submitBtn.disabled = false;
             return;
         }
 
@@ -62,81 +64,97 @@ document.addEventListener('DOMContentLoaded', () => {
         guardianMarkers.forEach(m => map.removeLayer(m));
         guardianMarkers = [];
 
-        // === CORRECT COORDINATES ===
-        if (latStr === "17.285" && lngStr === "78.486") {
-            map.flyTo([lat, lng], 15, { animate: true, duration: 2.5 });
+        try {
+            const response = await fetch('/api/verifyCoords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat: latStr, lng: lngStr })
+            });
 
-            setTimeout(() => {
-                // Create AMETHYST RUNE RING icon (Circling Shields Effect)
-                const swordIcon = L.divIcon({
-                    className: 'custom-sword-icon guarded-sword',
-                    html: `
-                        <div class="amethyst-rune-ring">
-                            <svg viewBox="0 0 100 100">
-                                <circle class="rune-ring-svg outer" cx="50" cy="50" r="45" />
-                                <circle class="rune-ring-svg inner" cx="50" cy="50" r="30" />
-                            </svg>
-                        </div>
-                        <div class="sword-marker-container guarded">🗡️</div>
-                    `,
-                    iconSize: [100, 100],
-                    iconAnchor: [50, 50],
-                    tooltipAnchor: [0, -60]
-                });
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
 
-                currentMarker = L.marker([lat, lng], { icon: swordIcon }).addTo(map);
-                currentMarker.bindTooltip('Guarded by spirits', {
-                    permanent: true,
-                    direction: 'top',
-                    className: 'custom-tooltip amethyst-guarded-label'
-                });
+            const data = await response.json();
 
-                // Make sword clickable — triggers the Manuscript reveal
-                currentMarker.on('click', () => {
-                    showSpellNote();
-                });
+            if (data.status === 'correct') {
+                map.flyTo([lat, lng], 15, { animate: true, duration: 2.5 });
 
-            }, 2500);
+                setTimeout(() => {
+                    // Create AMETHYST RUNE RING icon (Circling Shields Effect)
+                    const swordIcon = L.divIcon({
+                        className: 'custom-sword-icon guarded-sword',
+                        html: `
+                            <div class="amethyst-rune-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="rune-ring-svg outer" cx="50" cy="50" r="45" />
+                                    <circle class="rune-ring-svg inner" cx="50" cy="50" r="30" />
+                                </svg>
+                            </div>
+                            <div class="sword-marker-container guarded">🗡️</div>
+                        `,
+                        iconSize: [100, 100],
+                        iconAnchor: [50, 50],
+                        tooltipAnchor: [0, -60]
+                    });
 
-        } else if ((latStr === "11.1" && lngStr === "67.6")
-            || (latStr === "56.4" && lngStr === "88.45")
-            || (latStr === "47.89" && lngStr === "79.478")) {
-            let r2link = document.getElementById("round2Link");
-            if (r2link) r2link.classList.add("d-none");
+                    currentMarker = L.marker([lat, lng], { icon: swordIcon }).addTo(map);
+                    currentMarker.bindTooltip('Guarded by spirits', {
+                        permanent: true,
+                        direction: 'top',
+                        className: 'custom-tooltip amethyst-guarded-label'
+                    });
 
-            map.flyTo([lat, lng], 8, { animate: true, duration: 2.0 });
-            const randomPhrase = getRandomPhrase();
+                    // Make sword clickable — triggers the Manuscript reveal
+                    currentMarker.on('click', () => {
+                        showSpellNote();
+                    });
 
-            setTimeout(() => {
-                const ghostIcon = L.divIcon({
-                    className: 'custom-sword-icon',
-                    html: '<div class="sword-marker-container" style="filter:none;">👻</div>',
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 40],
-                    tooltipAnchor: [0, -30]
-                });
-                currentMarker = L.marker([lat, lng], { icon: ghostIcon }).addTo(map);
-                currentMarker.bindTooltip(randomPhrase, {
-                    permanent: true,
-                    direction: 'top',
-                    className: 'custom-tooltip'
-                });
-            }, 1000);
+                }, 2500);
 
-        } else {
-            let r2link = document.getElementById("round2Link");
-            if (r2link) r2link.classList.add("d-none");
+            } else if (data.status === 'ghost') {
+                let r2link = document.getElementById("round2Link");
+                if (r2link) r2link.classList.add("d-none");
 
-            map.flyTo([lat, lng], 12, { animate: true, duration: 1.5 });
+                map.flyTo([lat, lng], 8, { animate: true, duration: 2.0 });
+                const randomPhrase = getRandomPhrase();
 
-            setTimeout(() => {
-                currentMarker = L.marker([lat, lng]).addTo(map);
-                currentMarker.bindTooltip(getRandomPhrase(), {
-                    permanent: true,
-                    direction: 'top',
-                    className: 'custom-tooltip'
-                });
-            }, 1000);
+                setTimeout(() => {
+                    const ghostIcon = L.divIcon({
+                        className: 'custom-sword-icon',
+                        html: '<div class="sword-marker-container" style="filter:none;">👻</div>',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40],
+                        tooltipAnchor: [0, -30]
+                    });
+                    currentMarker = L.marker([lat, lng], { icon: ghostIcon }).addTo(map);
+                    currentMarker.bindTooltip(randomPhrase, {
+                        permanent: true,
+                        direction: 'top',
+                        className: 'custom-tooltip'
+                    });
+                }, 1000);
+
+            } else {
+                let r2link = document.getElementById("round2Link");
+                if (r2link) r2link.classList.add("d-none");
+
+                map.flyTo([lat, lng], 12, { animate: true, duration: 1.5 });
+
+                setTimeout(() => {
+                    currentMarker = L.marker([lat, lng]).addTo(map);
+                    currentMarker.bindTooltip(getRandomPhrase(), {
+                        permanent: true,
+                        direction: 'top',
+                        className: 'custom-tooltip'
+                    });
+                }, 1000);
+            }
+        } catch (error) {
+            console.error("Error verifying coordinates:", error);
+            alert("Could not verify coordinates. Please try again.");
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
         }
     });
 
@@ -182,38 +200,68 @@ document.addEventListener('DOMContentLoaded', () => {
         const spellSubmitBtn = document.getElementById('spellSubmitBtn');
         const spellError = document.getElementById('spellError');
 
-        spellSubmitBtn.addEventListener('click', () => {
+        spellSubmitBtn.addEventListener('click', async () => {
             const userSpell = spellInput.value.trim();
-            if (userSpell === CORRECT_SPELL) {
-                // SUCCESS: HEX-GRID RELEASE
-                // 1. Immediately Clear the Stage (Hide description/input)
-                contentArea.style.opacity = '0';
-                contentArea.style.pointerEvents = 'none';
+            if (!userSpell) return;
+            
+            spellSubmitBtn.disabled = true;
+            spellSubmitBtn.textContent = 'INVOKING...';
 
-                // 2. Fragmented Shatter (Primary Focus)
-                const shield = document.getElementById('ritualShield');
-                if (shield) shield.classList.add('hex-shard-shatter');
+            try {
+                const response = await fetch('/api/verifySpell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ spell: userSpell })
+                });
 
-                // 3. Sword Highlight & Frost Glow (Secondary Focus)
-                const sword = document.getElementById('ritualSword');
-                if (sword) {
-                    setTimeout(() => {
-                        sword.classList.add('sword-revealed-highlight');
-                        sword.classList.add('frost-reveal-glow');
-                    }, 400);
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
                 }
 
-                // 4. Reveal Name (NIXBLADE)
-                setTimeout(() => {
-                    nameReveal.classList.add('visible');
-                    // Keep the space occupied to prevent layout shift! 
-                    contentArea.style.visibility = 'hidden';
-                }, 1000);
+                const data = await response.json();
 
-            } else {
-                spellError.textContent = "The seal remains firm...";
-                spellInput.classList.add('shake');
-                setTimeout(() => spellInput.classList.remove('shake'), 500);
+                if (data.success) {
+                    // SUCCESS: HEX-GRID RELEASE
+                    // 1. Immediately Clear the Stage (Hide description/input)
+                    contentArea.style.opacity = '0';
+                    contentArea.style.pointerEvents = 'none';
+
+                    // 2. Fragmented Shatter (Primary Focus)
+                    const shield = document.getElementById('ritualShield');
+                    if (shield) shield.classList.add('hex-shard-shatter');
+
+                    // 3. Sword Highlight & Frost Glow (Secondary Focus)
+                    const sword = document.getElementById('ritualSword');
+                    if (sword) {
+                        setTimeout(() => {
+                            sword.classList.add('sword-revealed-highlight');
+                            sword.classList.add('frost-reveal-glow');
+                        }, 400);
+                    }
+
+                    // 4. Reveal Name (Inject safely from server)
+                    const titleEl = nameReveal.querySelector('.nixblade-title');
+                    if (titleEl && data.trueName) {
+                        titleEl.textContent = data.trueName;
+                    }
+
+                    setTimeout(() => {
+                        nameReveal.classList.add('visible');
+                        // Keep the space occupied to prevent layout shift! 
+                        contentArea.style.visibility = 'hidden';
+                    }, 1000);
+
+                } else {
+                    spellError.textContent = "The seal remains firm...";
+                    spellInput.classList.add('shake');
+                    setTimeout(() => spellInput.classList.remove('shake'), 500);
+                }
+            } catch (error) {
+                console.error("Failed to invoke spell", error);
+                spellError.textContent = "Magical interference detected. Try again.";
+            } finally {
+                spellSubmitBtn.disabled = false;
+                spellSubmitBtn.textContent = 'INVOKE SEALS';
             }
         });
 
